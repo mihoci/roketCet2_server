@@ -1,5 +1,18 @@
 const WebSocket = require('ws');
-wss = new WebSocket.Server({port: 0987})
+const express = require('express')
+const http = require('http')
+
+const app = express()
+const server = http.createServer(app)
+
+app.get('/', (req, res)=>{
+  res.send('Dela')
+})
+
+server.listen(8000)
+
+wss = new WebSocket.Server({server: server})
+
 
 const messages = []
 
