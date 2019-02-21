@@ -9,7 +9,7 @@ app.get('/', (req, res)=>{
   res.send('Dela')
 })
 
-server.listen(8000)
+server.listen(process.env.PORT || 5000)
 
 wss = new WebSocket.Server({server: server})
 
