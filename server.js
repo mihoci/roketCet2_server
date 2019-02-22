@@ -10,7 +10,7 @@ app.get('/', (req, res)=>{
   res.send(port)
 })
 
-server.listen(port || 5000)
+server.listen(port || 5001)
 
 wss = new WebSocket.Server({server: server})
 
@@ -20,7 +20,8 @@ const messages = []
 wss.on('connection', (ws, req) => {
 
     ws.on('message', (message) => {
-        messages.push(JSON.parse(message));
+        messages.unshift(JSON.parse(message));
+        console.log(messages)
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
               client.send(message);
