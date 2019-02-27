@@ -47,7 +47,6 @@ wss.on('connection', (ws, req) => {
 
       ws.on('close',() =>  {
           console.log('client disconnected')
-          console.log(users)
           users.splice(users.indexOf(username), 1)
           console.log(users)
           sendToAllUsers(JSON.stringify({users: users}))
