@@ -18,19 +18,40 @@ app.get('/', (req, res)=>{
 
 server.listen(port || 5001)
 wss = new WebSocket.Server({server: server})
+const users = []
 
 wss.on('connection', (ws, req) => {   
+      let username;
       ws.on('message', (message) => {
-        redisClient.lpush('messages', message)
-        for(const client of wss.clients){
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(message);
+        const parsedMsg = JSON.parse(message)
+        //check type of message
+        if(parsedMsg.username){
+          //check if user already exists
+          if(users.includes(parsedMsg.username)){
+            ws.send(JSON.stringify({err: 'user exists'}))
+          }else{
+             //set user
+            users.push(parsedMsg.username)
+            username = parsedMsg.username;
+            //send users to all users
+            sendToAllUsers(JSON.stringify({users: users}));
           }
+
+        }else{
+          //push message to redis
+          redisClient.lpush('messages', message)
+          sendToAllUsers(message)
         }
+
       })
 
       ws.on('close',() =>  {
           console.log('client disconnected')
+          console.log(users)
+          users.splice(users.indexOf(username), 1)
+          console.log(users)
+          sendToAllUsers(JSON.stringify({users: users}))
+
       })
 
       //send all messages to client
@@ -38,8 +59,16 @@ wss.on('connection', (ws, req) => {
         if(err){
           return err;
         }
-        console.log(reply)
         ws.send(JSON.stringify(reply));
       })
+      ws.send(JSON.stringify({users: users}))
     console.log('client connected')
 })
+
+const sendToAllUsers = (message)=>{
+  for(const client of wss.clients){
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  }
+}
